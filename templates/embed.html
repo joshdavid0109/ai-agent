@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .page {
+            text-align: center;
+            padding: 40px 24px;
+            max-width: 480px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e1e2e;
+            margin-bottom: 12px;
+        }
+
+        .logo span {
+            color: #10a37f;
+        }
+
+        .tagline {
+            font-size: 15px;
+            color: #777;
+            line-height: 1.6;
+        }
+
+        /* ====== Chat Widget Bubble + Frame ====== */
+        .chat-widget-bubble {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+            z-index: 9999;
+            border: none;
+        }
+
+        .chat-widget-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
+        }
+
+        .chat-widget-bubble.open {
+            transform: rotate(90deg) scale(1);
+        }
+
+        .chat-widget-bubble.open:hover {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .chat-widget-frame {
+            position: fixed;
+            bottom: 92px;
+            right: 24px;
+            width: 380px;
+            height: 560px;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+            z-index: 9998;
+            overflow: hidden;
+            display: none;
+            opacity: 0;
+            transform: translateY(16px) scale(0.96);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .chat-widget-frame.open {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        @media (max-width: 480px) {
+            .chat-widget-frame {
+                width: calc(100vw - 16px);
+                height: calc(100vh - 120px);
+                bottom: 80px;
+                right: 8px;
+                border-radius: 12px;
+            }
+
+            .chat-widget-bubble {
+                bottom: 16px;
+                right: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+        <div class="logo">AI <span>Demo</span></div>
+        <p class="tagline">Click the chat bubble to try the AI assistant.</p>
+    </div>
+
+    <!-- Floating Bubble Button -->
+    <button class="chat-widget-bubble" id="chatBubble" onclick="toggleWidget()">💬</button>
+
+    <!-- Widget iframe -->
+    <iframe class="chat-widget-frame" id="chatFrame" src="/widget" title="AI Chat Widget"
+        allow="clipboard-write"></iframe>
+
+    <script>
+        let isWidgetOpen = false;
+
+        function toggleWidget() {
+            isWidgetOpen = !isWidgetOpen;
+            const frame = document.getElementById('chatFrame');
+            const bubble = document.getElementById('chatBubble');
+
+            if (isWidgetOpen) {
+                frame.classList.add('open');
+                bubble.classList.add('open');
+                bubble.textContent = '✕';
+                frame.contentWindow.postMessage(
+                    { source: 'ai-chat-host', type: 'open' }, '*'
+                );
+            } else {
+                frame.classList.remove('open');
+                bubble.classList.remove('open');
+                bubble.textContent = '💬';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,1 @@
+python3 -m pip install fastapi uvicorn huggingface_hub jinja2

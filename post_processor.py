@@ -103,6 +103,11 @@ class HFPostProcessor:
             '- "create_new": User wants to create a brand new job description '
             '(e.g. "create a JD for software engineer", "I need a data analyst '
             'job description", or they just type a job title like "Junior Laravel Developer")\n'
+            '- "create_job_ad": User wants to create a JOB ADVERTISEMENT or JOB AD '
+            '(not a job description). Look for keywords like "job ad", "job advertisement", '
+            '"job posting", "post a job", "create an ad", "hiring ad". '
+            'e.g. "create a job ad for senior ML engineer", "I want to post a job ad", '
+            '"generate a job advertisement for data analyst"\n'
             '- "change_role": User wants to switch to a DIFFERENT job role/title '
             'than the current one (e.g. "now I want a junior react developer", '
             '"make it AI Specialist instead", "switch to data engineer"). '
@@ -166,7 +171,19 @@ class HFPostProcessor:
             '"department": null, "experience_level": null, "tasks": null, "skills": null}\n\n'
             'User: "you decide"\n'
             '{"intent": "auto_fill", "job_title": null, "company_name": null, '
-            '"department": null, "experience_level": null, "tasks": null, "skills": null}'
+            '"department": null, "experience_level": null, "tasks": null, "skills": null}\n\n'
+            'User: "create a job ad for senior ML engineer"\n'
+            '{"intent": "create_job_ad", "job_title": "Senior ML Engineer", '
+            '"company_name": null, "department": null, "experience_level": "senior", '
+            '"tasks": null, "skills": null}\n\n'
+            'User: "I want to post a job advertisement for data analyst"\n'
+            '{"intent": "create_job_ad", "job_title": "Data Analyst", '
+            '"company_name": null, "department": null, "experience_level": null, '
+            '"tasks": null, "skills": null}\n\n'
+            'User: "generate a hiring ad for junior laravel developer"\n'
+            '{"intent": "create_job_ad", "job_title": "Junior Laravel Developer", '
+            '"company_name": null, "department": null, "experience_level": "junior", '
+            '"tasks": null, "skills": null}'
         )
 
         # Build the user message with conversation context
@@ -192,7 +209,7 @@ class HFPostProcessor:
 
         try:
             result = self._clean_json_response(raw_content)
-            valid_intents = {"create_new", "change_role", "edit_jd", "provide_info", "auto_fill"}
+            valid_intents = {"create_new", "create_job_ad", "change_role", "edit_jd", "provide_info", "auto_fill"}
             if result.get("intent") not in valid_intents:
                 result["intent"] = "provide_info"
             print(f"[DEBUG] HF understood: intent={result.get('intent')}, "
@@ -278,6 +295,9 @@ Return ONLY valid JSON with these fields:
 - department: the most likely department for this role
 - tasks: a comma-separated list of 4-5 typical responsibilities
 - skills: a comma-separated list of 4-5 key skills required
+- experience_level: e.g. "Entry-level", "2+ years", "5+ years experience"
+- benefits: a comma-separated list of 3-4 typical benefits (e.g. "HMO, 15 days PTO, flexible hours, annual bonus")
+- salary_range: a realistic salary range for this role (e.g. "PHP 25,000 - 35,000 per month")
 
 Be specific and realistic based on the job title.
 Do NOT return fields that are already provided.
@@ -290,7 +310,7 @@ Job Title: {job_title}
 Experience Level: {experience_level or "Not specified"}
 Already known:{existing_info if existing_info else " None"}
 
-Generate reasonable defaults for any missing fields (department, tasks, skills).
+Generate reasonable defaults for any missing fields (department, tasks, skills, experience_level, benefits, salary_range).
 """
 
         response = self.client.chat_completion(
@@ -298,7 +318,7 @@ Generate reasonable defaults for any missing fields (department, tasks, skills).
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=400,
+            max_tokens=500,
             temperature=0.3,
         )
 
@@ -317,6 +337,9 @@ Generate reasonable defaults for any missing fields (department, tasks, skills).
                          "Maintaining documentation, Supporting daily operations",
                 "skills": "Communication, Problem-solving, Time management, "
                           "Technical aptitude",
+                "experience_level": "Not specified",
+                "benefits": "HMO, PTO, flexible hours",
+                "salary_range": "Competitive",
             }
 
 
